@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ customer.name }} - SmartStock{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>{{ customer.name }}</h2>
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <p><strong>Email:</strong> {{ customer.email }}</p>
+                <p><strong>Phone:</strong> {{ customer.phone }}</p>
+                <p><strong>Address:</strong> {{ customer.address }}</p>
+                <p><strong>City:</strong> {{ customer.city }}, {{ customer.state }}</p>
+                <p><strong>Postal Code:</strong> {{ customer.postal_code }}</p>
+                <p><strong>Country:</strong> {{ customer.country }}</p>
+            </div>
+        </div>
+        <a href="{% url 'customers:update' customer.pk %}" class="btn btn-warning me-2">Edit</a>
+        <a href="{% url 'customers:list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+{% endblock %}

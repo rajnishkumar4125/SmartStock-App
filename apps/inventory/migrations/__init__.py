@@ -1,0 +1,3 @@
+"""
+Inventory app initial migrations.
+"""

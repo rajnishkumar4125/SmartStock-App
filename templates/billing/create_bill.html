@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Bill - SmartStock{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <h2 class="mb-4">Create New Bill</h2>
+
+        <div class="card shadow">
+            <div class="card-body">
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="row mb-3">
+                        <div class="col-md-6 mb-3">
+                            {{ form.customer.label_tag }}
+                            {{ form.customer }}
+                            {% if form.customer.errors %}
+                                <div class="invalid-feedback d-block">{{ form.customer.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.notes.label_tag }}
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                                <div class="invalid-feedback d-block">{{ form.notes.errors|striptags }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <hr>
+                    <h5>Products</h5>
+                    {{ formset.management_form }}
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle" id="bill-items-table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                    <th>Remove</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item_form in formset.forms %}
+                                <tr class="bill-item-row">
+                                    <td>
+                                        {{ item_form.product }}
+                                        {% if item_form.product.errors %}
+                                            <div class="invalid-feedback d-block">{{ item_form.product.errors|striptags }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ item_form.price }}
+                                        {% if item_form.price.errors %}
+                                            <div class="invalid-feedback d-block">{{ item_form.price.errors|striptags }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ item_form.quantity }}
+                                        {% if item_form.quantity.errors %}
+                                            <div class="invalid-feedback d-block">{{ item_form.quantity.errors|striptags }}</div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end item-total">0.00</td>
+                                    <td class="text-center">
+                                        {{ item_form.DELETE }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Invoice Total</strong></td>
+                                    <td class="text-end"><strong id="invoice-total">0.00</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <button type="button" class="btn btn-outline-primary" id="add-item-btn">Add Product</button>
+                        <div>
+                            <a href="{% url 'billing:list' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save Bill</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const productPrices = JSON.parse('{{ product_prices_json|escapejs }}');
+    const billTable = document.getElementById('bill-items-table');
+    const invoiceTotal = document.getElementById('invoice-total');
+    const totalFormsInput = document.querySelector('input[name="items-TOTAL_FORMS"]');
+
+    function parseNumber(value) {
+        const parsed = parseFloat(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function updateRowTotal(row) {
+        const priceInput = row.querySelector('.price-input');
+        const quantityInput = row.querySelector('.quantity-input');
+        const totalCell = row.querySelector('.item-total');
+
+        const price = parseNumber(priceInput.value);
+        const quantity = parseNumber(quantityInput.value);
+        const total = price * quantity;
+        totalCell.textContent = total.toFixed(2);
+        updateInvoiceTotal();
+    }
+
+    function updateInvoiceTotal() {
+        let total = 0;
+        document.querySelectorAll('.bill-item-row').forEach(row => {
+            const deleteCheckbox = row.querySelector('input[type=checkbox][name$="-DELETE"]');
+            if (deleteCheckbox && deleteCheckbox.checked) return;
+            total += parseNumber(row.querySelector('.item-total').textContent);
+        });
+        invoiceTotal.textContent = total.toFixed(2);
+    }
+
+    function refreshRowListeners(row) {
+        const productSelect = row.querySelector('.product-select');
+        const quantityInput = row.querySelector('.quantity-input');
+        const priceInput = row.querySelector('.price-input');
+        const deleteCheckbox = row.querySelector('input[type=checkbox][name$="-DELETE"]');
+
+        if (productSelect) {
+            productSelect.addEventListener('change', () => {
+                const productId = productSelect.value;
+                if (productPrices[productId]) {
+                    priceInput.value = productPrices[productId];
+                }
+                updateRowTotal(row);
+            });
+        }
+
+        if (quantityInput) {
+            quantityInput.addEventListener('input', () => updateRowTotal(row));
+        }
+
+        if (priceInput) {
+            priceInput.addEventListener('input', () => updateRowTotal(row));
+        }
+
+        if (deleteCheckbox) {
+            deleteCheckbox.addEventListener('change', () => updateRowTotal(row));
+        }
+
+        updateRowTotal(row);
+    }
+
+    function createNewRow() {
+        const rowCount = parseInt(totalFormsInput.value, 10);
+        const newRow = document.querySelector('.bill-item-row').cloneNode(true);
+        const regex = new RegExp(`items-(\\d+)-`, 'g');
+
+        newRow.innerHTML = newRow.innerHTML.replace(regex, `items-${rowCount}-`);
+        newRow.querySelectorAll('input, select').forEach(input => {
+            if (input.type === 'checkbox') {
+                input.checked = false;
+            }
+            if (input.name && input.name.endsWith('-DELETE')) {
+                input.checked = false;
+            }
+            if (['text', 'number', 'hidden'].includes(input.type)) {
+                input.value = '';
+            }
+        });
+
+        const deleteCheckbox = newRow.querySelector('input[type=checkbox][name$="-DELETE"]');
+        if (deleteCheckbox) {
+            deleteCheckbox.closest('td').classList.add('text-center');
+        }
+
+        billTable.querySelector('tbody').appendChild(newRow);
+        totalFormsInput.value = rowCount + 1;
+        refreshRowListeners(newRow);
+    }
+
+    document.querySelectorAll('.bill-item-row').forEach(refreshRowListeners);
+    document.getElementById('add-item-btn').addEventListener('click', createNewRow);
+</script>
+{% endblock %}

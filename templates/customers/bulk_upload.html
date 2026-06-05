@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Bulk Customer Upload{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Bulk Customer Upload</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="alert alert-info">
+                        <h5>CSV Format Requirements:</h5>
+                        <ul class="mb-0">
+                            <li><strong>Required columns:</strong> name, email, phone, address, city, country</li>
+                            <li><strong>Optional columns:</strong> state, postal_code</li>
+                            <li><strong>File size:</strong> Maximum 5MB</li>
+                            <li><strong>File format:</strong> CSV only</li>
+                        </ul>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" id="uploadForm" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_csv_file" class="form-label">CSV File <span class="text-danger">*</span></label>
+                            <input type="file" name="csv_file" id="id_csv_file" class="form-control {% if form.csv_file.errors %}is-invalid{% endif %}" accept=".csv" required>
+                            <small class="form-text text-muted d-block mt-2">Upload a CSV file with customer data. Required columns: name, email, phone, address, city, country</small>
+                            {% if form.csv_file.errors %}
+                                <div class="invalid-feedback d-block mt-2">
+                                    {% for error in form.csv_file.errors %}
+                                        <p class="mb-1">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {% for error in form.non_field_errors %}
+                                        <p class="mb-1">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class="fas fa-upload"></i> Upload CSV
+                            </button>
+                            <a href="{% url 'customers:list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+
+                    <hr class="my-5">
+
+                    <h5>Sample CSV Format:</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>name</th>
+                                    <th>email</th>
+                                    <th>phone</th>
+                                    <th>address</th>
+                                    <th>city</th>
+                                    <th>country</th>
+                                    <th>state</th>
+                                    <th>postal_code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>John Doe</td>
+                                    <td>john@example.com</td>
+                                    <td>9876543210</td>
+                                    <td>123 Main St</td>
+                                    <td>New York</td>
+                                    <td>USA</td>
+                                    <td>NY</td>
+                                    <td>10001</td>
+                                </tr>
+                                <tr>
+                                    <td>Jane Smith</td>
+                                    <td>jane@example.com</td>
+                                    <td>9876543211</td>
+                                    <td>456 Oak Ave</td>
+                                    <td>Los Angeles</td>
+                                    <td>USA</td>
+                                    <td>CA</td>
+                                    <td>90001</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="{% url 'customers:download_sample_csv' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-download"></i> Download Sample CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Upload Tips</h5>
+                    <ul>
+                        <li>Ensure all required columns are present</li>
+                        <li>Email addresses must be unique</li>
+                        <li>Phone numbers must be 10-15 digits</li>
+                        <li>Check for duplicate emails before uploading</li>
+                        <li>Valid country/state format recommended</li>
+                        <li>Remove spaces from phone numbers</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const fileInput = document.getElementById('id_csv_file');
+    
+    // Show file name when selected
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            console.log('File selected: ' + this.files[0].name);
+        }
+    });
+    
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        console.log('Form submitted');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            e.preventDefault();
+            alert('Please select a CSV file');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

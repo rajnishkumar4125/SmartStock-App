@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block title %}Bulk Product Upload{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">Bulk Product Upload</h4>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    <div class="alert alert-info">
+                        <h5>CSV Format Requirements:</h5>
+                        <ul class="mb-0">
+                            <li><strong>Required columns:</strong> name, sku, category, price, stock_quantity, reorder_level</li>
+                            <li><strong>Optional columns:</strong> description, status (active/inactive/discontinued)</li>
+                            <li><strong>File size:</strong> Maximum 5MB</li>
+                            <li><strong>File format:</strong> CSV only</li>
+                        </ul>
+                    </div>
+
+                    <form method="post" enctype="multipart/form-data" id="uploadForm" novalidate>
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="id_csv_file" class="form-label">CSV File <span class="text-danger">*</span></label>
+                            <input type="file" name="csv_file" id="id_csv_file" class="form-control {% if form.csv_file.errors %}is-invalid{% endif %}" accept=".csv" required>
+                            <small class="form-text text-muted d-block mt-2">Upload a CSV file with product data. Required columns: name, sku, category, price, stock_quantity, reorder_level</small>
+                            {% if form.csv_file.errors %}
+                                <div class="invalid-feedback d-block mt-2">
+                                    {% for error in form.csv_file.errors %}
+                                        <p class="mb-1">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger mt-2">
+                                    {% for error in form.non_field_errors %}
+                                        <p class="mb-1">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+                                <i class="fas fa-upload"></i> Upload CSV
+                            </button>
+                            <a href="{% url 'products:list' %}" class="btn btn-secondary btn-lg">Cancel</a>
+                        </div>
+                    </form>
+
+                    <hr class="my-5">
+
+                    <h5>Sample CSV Format:</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>name</th>
+                                    <th>sku</th>
+                                    <th>category</th>
+                                    <th>price</th>
+                                    <th>stock_quantity</th>
+                                    <th>reorder_level</th>
+                                    <th>description</th>
+                                    <th>status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Laptop</td>
+                                    <td>PROD-001</td>
+                                    <td>Electronics</td>
+                                    <td>999.99</td>
+                                    <td>50</td>
+                                    <td>10</td>
+                                    <td>High-performance laptop</td>
+                                    <td>active</td>
+                                </tr>
+                                <tr>
+                                    <td>Mouse</td>
+                                    <td>PROD-002</td>
+                                    <td>Electronics</td>
+                                    <td>29.99</td>
+                                    <td>200</td>
+                                    <td>50</td>
+                                    <td>Wireless mouse</td>
+                                    <td>active</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-3">
+                        <a href="{% url 'products:download_sample_csv' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-download"></i> Download Sample CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">Upload Tips</h5>
+                    <ul>
+                        <li>Ensure all required columns are present</li>
+                        <li>Check for duplicate SKUs before uploading</li>
+                        <li>Use proper date format if applicable</li>
+                        <li>Prices must be numeric values</li>
+                        <li>Stock quantities must be integers</li>
+                        <li>Valid status values: active, inactive, discontinued</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('uploadForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const fileInput = document.getElementById('id_csv_file');
+    
+    // Show file name when selected
+    fileInput.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            console.log('File selected: ' + this.files[0].name);
+        }
+    });
+    
+    // Handle form submission
+    form.addEventListener('submit', function(e) {
+        console.log('Form submitted');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            e.preventDefault();
+            alert('Please select a CSV file');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

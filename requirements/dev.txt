@@ -1,0 +1,26 @@
+# Development requirements for SmartStock AI
+-r base.txt
+
+# Django REST Framework
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+
+# Frontend
+django-crispy-forms==2.1
+crispy-bootstrap5==2026.3
+
+# Debugging and development
+django-debug-toolbar==4.2.0
+ipython==8.18.1
+black==23.12.0
+flake8==6.1.0
+isort==5.13.2
+
+# Testing
+pytest==7.4.3
+pytest-django==4.7.0
+pytest-cov==4.1.0
+factory-boy==3.3.0
+
+# Documentation
+sphinx==7.2.6

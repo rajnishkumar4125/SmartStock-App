@@ -1,0 +1,3 @@
+"""
+Analytics app initial migrations.
+"""

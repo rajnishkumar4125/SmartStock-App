@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ bill.bill_number }} - SmartStock{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2>{{ bill.bill_number }}</h2>
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <p><strong>Customer:</strong> {{ bill.customer.name }}</p>
+                <p><strong>Email:</strong> {{ bill.customer.email }}</p>
+                <p><strong>Phone:</strong> {{ bill.customer.phone }}</p>
+                <p><strong>Status:</strong>
+                    <span class="badge bg-{% if bill.status == 'paid' %}success{% elif bill.status == 'pending' %}warning{% else %}secondary{% endif %}">
+                        {{ bill.get_status_display }}
+                    </span>
+                </p>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header">
+                <h5>Items</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in bill.items.all %}
+                        <tr>
+                            <td>{{ item.product.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>${{ item.price }}</td>
+                            <td>${{ item.get_total }}</td>
+                        </tr>
+                        {% endfor %}
+                        <tr class="table-light">
+                            <td colspan="3"><strong>Total</strong></td>
+                            <td><strong>${{ bill.total_amount }}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <a href="{% url 'billing:update' bill.pk %}" class="btn btn-warning me-2">Edit</a>
+        <a href="{% url 'billing:invoice' bill.pk %}" target="_blank" class="btn btn-success me-2">Generate Invoice</a>
+        <button type="button" class="btn btn-outline-primary me-2" onclick="window.print()">Print</button>
+        <a href="{% url 'billing:list' %}" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
+{% endblock %}

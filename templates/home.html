@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - SmartStock{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="jumbotron bg-light p-5 rounded shadow-sm">
+            <h1 class="display-4">Welcome to SmartStock</h1>
+            <p class="lead">Your complete inventory management solution</p>
+            <hr class="my-4">
+            <p>SmartStock is a comprehensive inventory management system designed to help your business manage products, customers, and sales efficiently.</p>
+            {% if user.is_authenticated %}
+            <div class="mt-4">
+                <a class="btn btn-primary btn-lg me-2" href="{% url 'accounts:dashboard' %}" role="button">Dashboard</a>
+                <a class="btn btn-success btn-lg me-2" href="{% url 'products:list' %}" role="button">Products</a>
+                <a class="btn btn-info btn-lg" href="{% url 'customers:list' %}" role="button">Customers</a>
+            </div>
+            {% else %}
+            <div class="mt-4">
+                <a class="btn btn-primary btn-lg me-2" href="{% url 'accounts:login' %}" role="button">Login</a>
+                <a class="btn btn-success btn-lg" href="{% url 'accounts:register' %}" role="button">Register</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

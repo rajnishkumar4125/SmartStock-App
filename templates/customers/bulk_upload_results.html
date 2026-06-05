@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}Bulk Customer Upload Results{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">Customer Upload Results</h4>
+                </div>
+                <div class="card-body">
+                    {% if upload_results %}
+                        {% with summary=upload_results.summary %}
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="card text-center bg-light">
+                                    <div class="card-body">
+                                        <h6 class="text-muted">Total Processed</h6>
+                                        <h3 class="card-title">{{ summary.total_processed }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center bg-success text-white">
+                                    <div class="card-body">
+                                        <h6>Successful</h6>
+                                        <h3 class="card-title">{{ summary.successful }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center bg-danger text-white">
+                                    <div class="card-body">
+                                        <h6>Failed</h6>
+                                        <h3 class="card-title">{{ summary.failed }}</h3>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card text-center bg-info text-white">
+                                    <div class="card-body">
+                                        <h6>Success Rate</h6>
+                                        <h3 class="card-title">{{ summary.success_rate }}%</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endwith %}
+
+                        {% if upload_results.successful %}
+                        <div class="mt-4">
+                            <h5 class="mb-3">✓ Successfully Imported ({{ upload_results.successful|length }})</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-success">
+                                        <tr>
+                                            <th>Row</th>
+                                            <th>Customer Name</th>
+                                            <th>Email</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in upload_results.successful %}
+                                        <tr>
+                                            <td><span class="badge bg-success">{{ item.row }}</span></td>
+                                            <td>{{ item.data.name }}</td>
+                                            <td><code>{{ item.data.email }}</code></td>
+                                            <td><i class="fas fa-check-circle text-success"></i></td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if upload_results.failed %}
+                        <div class="mt-4">
+                            <h5 class="mb-3">✗ Failed Import ({{ upload_results.failed|length }})</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover">
+                                    <thead class="table-danger">
+                                        <tr>
+                                            <th>Row</th>
+                                            <th>Error Reason</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in upload_results.failed %}
+                                        <tr>
+                                            <td><span class="badge bg-danger">{{ item.row }}</span></td>
+                                            <td>{{ item.reason }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="mt-4">
+                            <a href="{% url 'customers:bulk_upload' %}" class="btn btn-primary">
+                                <i class="fas fa-redo"></i> Upload Another File
+                            </a>
+                            <a href="{% url 'customers:list' %}" class="btn btn-secondary">
+                                <i class="fas fa-list"></i> View Customers
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> No upload results available. 
+                            <a href="{% url 'customers:bulk_upload' %}">Start an upload</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
